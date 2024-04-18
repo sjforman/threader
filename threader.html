@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Character Counter</title>
+  <title>Threader</title>
   <style>
     body {
       display: flex;
@@ -22,6 +22,7 @@
 
     .text-field {
       margin-bottom: 10px;
+      position: relative;
     }
 
     .text-field textarea {
@@ -36,12 +37,13 @@
       background-color: yellow;
     }
 
-    .remove-btn {
-      margin-left: 5px;
+    .foot-container {
+      display: flex;
+      gap: 20px;
+      margin-top: 5px;
     }
 
     .char-count {
-      margin-top: 2px;
       font-size: 12px;
     }
 
@@ -49,17 +51,14 @@
       color: red;
     }
 
-    #save-btn {
+    #save-btn,
+    #clear-btn {
       margin-bottom: 10px;
+      margin-right: 5px;
     }
 
     .field-label {
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-
-    .add-field-btn {
-      margin-left: 5px;
+      font-size: 12px;
     }
   </style>
 </head>
@@ -67,13 +66,8 @@
 <body>
   <textarea id="text-area"></textarea>
   <div id="text-fields">
-    <button id="save-btn">Save</button>
-    <button id="clear-btn">Clear</button>
-    <div class="text-field">
-      <div class="field-label">1.</div> <textarea wrap="soft"></textarea>
-      <div class="char-count">0/280</div> <button class="remove-btn">Remove</button> <button class="add-field-btn">Add
-        Field</button>
-    </div>
+    <button id="save-btn">Save to file</button>
+    <button id="clear-btn">Clear all</button>
   </div>
   <script>
     const textArea = document.getElementById('text-area');
@@ -87,7 +81,7 @@
     textFieldsContainer.addEventListener('input', function (event) {
       if (event.target.tagName === 'TEXTAREA') {
         autoGrow(event.target);
-        const charCount = event.target.nextElementSibling;
+        const charCount = event.target.parentNode.querySelector('.char-count');
         const count = event.target.value.length;
         charCount.textContent = `${count}/280`;
         if (count > 280) {
@@ -109,13 +103,13 @@
       if (event.target.classList.contains('remove-btn')) {
         const textFields = textFieldsContainer.querySelectorAll('.text-field');
         if (textFields.length > 1) {
-          event.target.parentNode.remove();
+          event.target.closest('.text-field').remove();
           updateFieldLabels();
           saveTextFields();
         }
       } else if (event.target.classList.contains('add-field-btn')) {
         const textField = createTextField();
-        event.target.parentNode.insertAdjacentElement('afterend', textField);
+        event.target.closest('.text-field').after(textField);
         updateFieldLabels();
         saveTextFields();
       }
@@ -139,7 +133,7 @@
       localStorage.setItem('textFields', JSON.stringify(textFieldValues));
     }
 
-    function loadSavedTextFields() {
+     function loadSavedTextFields() {
       const savedTextFields = JSON.parse(localStorage.getItem('textFields'));
       textFieldsContainer.innerHTML = '';
       textFieldsContainer.appendChild(saveBtn);
@@ -158,9 +152,11 @@
     }
 
     function updateFieldLabels() {
-      const fieldLabels = textFieldsContainer.querySelectorAll('.field-label');
-      fieldLabels.forEach((label, index) => {
-        label.textContent = `${index + 1}.`;
+      const textFields = textFieldsContainer.querySelectorAll('.text-field');
+      const totalFields = textFields.length;
+      textFields.forEach((textField, index) => {
+        const fieldLabel = textField.querySelector('.field-label');
+        fieldLabel.textContent = `${index + 1}/${totalFields}`;
       });
     }
 
@@ -184,6 +180,19 @@
       }
     }
 
+    function updateCharCount(textarea) {
+      const charCount = textarea.parentNode.querySelector('.char-count');
+      const count = textarea.value.length;
+      charCount.textContent = `${count}/280`;
+      if (count > 280) {
+        textarea.classList.add('exceeded');
+        charCount.classList.add('exceeded');
+      } else {
+        textarea.classList.remove('exceeded');
+        charCount.classList.remove('exceeded');
+      }
+    }
+
     function downloadFile(filename, content) {
       const element = document.createElement('a');
       element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
@@ -202,10 +211,8 @@
         textFieldsContainer.innerHTML = '';
         textFieldsContainer.appendChild(saveBtn);
         textFieldsContainer.appendChild(clearBtn);
-        const initialTextFields = createTextField();
-        initialTextFields.forEach(textField => {
-          textFieldsContainer.appendChild(textField);
-        });
+        const initialTextField = createTextField();
+        textFieldsContainer.appendChild(initialTextField);
         updateFieldLabels();
       }
     });
@@ -214,14 +221,18 @@
       const textField = document.createElement('div');
       textField.classList.add('text-field');
       textField.innerHTML = `
-    <div class="field-label"></div>
-    <textarea wrap="soft" style="min-height: 50px;">${value}</textarea>
-    <div class="char-count">${value.length}/280</div>
-    <button class="remove-btn">Remove</button>
-    <button class="add-field-btn">Add Field</button>
+    <textarea wrap="soft">${value}</textarea>
+    <div class="foot-container">
+      <span class="field-label">1/1</span>
+      <span class="char-count">0/280</span>
+      <button class="remove-btn">Remove</button>
+      <button class="add-field-btn">Insert</button>
+    </div>
   `;
-      autoGrow(textField.querySelector('textarea'));
-      updateExceededClass(textField.querySelector('textarea'));
+      const textarea = textField.querySelector('textarea');
+      autoGrow(textarea);
+      updateCharCount(textarea);
+      updateExceededClass(textarea);
       return textField;
     }
   </script>
