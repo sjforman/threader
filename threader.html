@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Character Counter</title>
+  <style>
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+    }
+
+    #text-area {
+      flex: 1;
+      height: 400px;
+      margin-right: 20px;
+      resize: vertical;
+    }
+
+    #text-fields {
+      flex: 1;
+    }
+
+    .text-field {
+      margin-bottom: 10px;
+    }
+
+    .text-field textarea {
+      width: 90%;
+      padding: 5px;
+      overflow: hidden;
+      resize: none;
+      background-color: white;
+    }
+
+    .text-field textarea.exceeded {
+      background-color: yellow;
+    }
+
+    .remove-btn {
+      margin-left: 5px;
+    }
+
+    .char-count {
+      margin-top: 2px;
+      font-size: 12px;
+    }
+
+    .exceeded {
+      color: red;
+    }
+
+    #save-btn {
+      margin-bottom: 10px;
+    }
+
+    .field-label {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .add-field-btn {
+      margin-left: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <textarea id="text-area"></textarea>
+  <div id="text-fields">
+    <button id="save-btn">Save</button>
+    <button id="clear-btn">Clear</button>
+    <div class="text-field">
+      <div class="field-label">1.</div> <textarea wrap="soft"></textarea>
+      <div class="char-count">0/280</div> <button class="remove-btn">Remove</button> <button class="add-field-btn">Add
+        Field</button>
+    </div>
+  </div>
+  <script>
+    const textArea = document.getElementById('text-area');
+    const textFieldsContainer = document.getElementById('text-fields');
+    const saveBtn = document.getElementById('save-btn');
+    const clearBtn = document.getElementById('clear-btn');
+
+    loadSavedTextFields();
+    loadSavedTextArea();
+
+    textFieldsContainer.addEventListener('input', function (event) {
+      if (event.target.tagName === 'TEXTAREA') {
+        autoGrow(event.target);
+        const charCount = event.target.nextElementSibling;
+        const count = event.target.value.length;
+        charCount.textContent = `${count}/280`;
+        if (count > 280) {
+          event.target.classList.add('exceeded');
+          charCount.classList.add('exceeded');
+        } else {
+          event.target.classList.remove('exceeded');
+          charCount.classList.remove('exceeded');
+        }
+        saveTextFields();
+      }
+    });
+
+    textArea.addEventListener('input', function () {
+      saveTextArea();
+    });
+
+    textFieldsContainer.addEventListener('click', function (event) {
+      if (event.target.classList.contains('remove-btn')) {
+        const textFields = textFieldsContainer.querySelectorAll('.text-field');
+        if (textFields.length > 1) {
+          event.target.parentNode.remove();
+          updateFieldLabels();
+          saveTextFields();
+        }
+      } else if (event.target.classList.contains('add-field-btn')) {
+        const textField = createTextField();
+        event.target.parentNode.insertAdjacentElement('afterend', textField);
+        updateFieldLabels();
+        saveTextFields();
+      }
+    });
+
+    saveBtn.addEventListener('click', function () {
+      const textFields = Array.from(textFieldsContainer.querySelectorAll('textarea'));
+      const tweets = textFields.map(textField => textField.value.trim()).filter(tweet => tweet !== '');
+      const fileContent = tweets.join('\n\n');
+      downloadFile('thread.txt', fileContent);
+    });
+
+    function autoGrow(element) {
+      element.style.height = 'auto';
+      element.style.height = Math.max(50, element.scrollHeight) + 'px';
+    }
+
+    function saveTextFields() {
+      const textFields = Array.from(textFieldsContainer.querySelectorAll('textarea'));
+      const textFieldValues = textFields.map(textField => textField.value);
+      localStorage.setItem('textFields', JSON.stringify(textFieldValues));
+    }
+
+    function loadSavedTextFields() {
+      const savedTextFields = JSON.parse(localStorage.getItem('textFields'));
+      textFieldsContainer.innerHTML = '';
+      textFieldsContainer.appendChild(saveBtn);
+      textFieldsContainer.appendChild(clearBtn);
+      if (savedTextFields && savedTextFields.length > 0) {
+        savedTextFields.forEach(value => {
+          const textField = createTextField(value);
+          textFieldsContainer.appendChild(textField);
+          autoGrow(textField.querySelector('textarea'));
+        });
+      } else {
+        const initialTextField = createTextField();
+        textFieldsContainer.appendChild(initialTextField);
+      }
+      updateFieldLabels();
+    }
+
+    function updateFieldLabels() {
+      const fieldLabels = textFieldsContainer.querySelectorAll('.field-label');
+      fieldLabels.forEach((label, index) => {
+        label.textContent = `${index + 1}.`;
+      });
+    }
+
+    function saveTextArea() {
+      localStorage.setItem('textArea', textArea.value);
+    }
+
+    function loadSavedTextArea() {
+      const savedTextArea = localStorage.getItem('textArea');
+      if (savedTextArea) {
+        textArea.value = savedTextArea;
+      }
+    }
+
+    function updateExceededClass(textarea) {
+      const count = textarea.value.length;
+      if (count > 280) {
+        textarea.classList.add('exceeded');
+      } else {
+        textarea.classList.remove('exceeded');
+      }
+    }
+
+    function downloadFile(filename, content) {
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+      element.setAttribute('download', filename);
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+
+    clearBtn.addEventListener('click', function () {
+      if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+        localStorage.removeItem('textFields');
+        localStorage.removeItem('textArea');
+        textArea.value = '';
+        textFieldsContainer.innerHTML = '';
+        textFieldsContainer.appendChild(saveBtn);
+        textFieldsContainer.appendChild(clearBtn);
+        const initialTextFields = createTextField();
+        initialTextFields.forEach(textField => {
+          textFieldsContainer.appendChild(textField);
+        });
+        updateFieldLabels();
+      }
+    });
+
+    function createTextField(value = '') {
+      const textField = document.createElement('div');
+      textField.classList.add('text-field');
+      textField.innerHTML = `
+    <div class="field-label"></div>
+    <textarea wrap="soft" style="min-height: 50px;">${value}</textarea>
+    <div class="char-count">${value.length}/280</div>
+    <button class="remove-btn">Remove</button>
+    <button class="add-field-btn">Add Field</button>
+  `;
+      autoGrow(textField.querySelector('textarea'));
+      updateExceededClass(textField.querySelector('textarea'));
+      return textField;
+    }
+  </script>
+</body>
+
+</html>
