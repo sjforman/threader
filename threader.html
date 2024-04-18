@@ -16,7 +16,7 @@
       resize: vertical;
     }
 
-    #text-fields {
+    #thread-container {
       flex: 1;
     }
 
@@ -37,6 +37,12 @@
       background-color: yellow;
     }
 
+    #thread-controls {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
     .foot-container {
       display: flex;
       gap: 20px;
@@ -51,12 +57,6 @@
       color: red;
     }
 
-    #save-btn,
-    #clear-btn {
-      margin-bottom: 10px;
-      margin-right: 5px;
-    }
-
     .field-label {
       font-size: 12px;
     }
@@ -65,18 +65,55 @@
 
 <body>
   <textarea id="text-area"></textarea>
-  <div id="text-fields">
-    <button id="save-btn">Save to file</button>
-    <button id="clear-btn">Clear all</button>
+
+  <div id="thread-container">
+    <div id="thread-controls">
+      <label for="char-limit-toggle" style="font-size:12px">Maxchars:</label>
+      <select id="char-limit-toggle">
+        <option value="280">Twitter (280)</option>
+        <option value="300">Bluesky (300)</option>
+      </select>
+      <button id="save-btn">Save to file</button>
+      <button id="clear-btn">Clear all</button>
+    </div>
+
+    <div id="text-fields">
+    </div>
   </div>
+
   <script>
     const textArea = document.getElementById('text-area');
     const textFieldsContainer = document.getElementById('text-fields');
     const saveBtn = document.getElementById('save-btn');
     const clearBtn = document.getElementById('clear-btn');
 
-    loadSavedTextFields();
-    loadSavedTextArea();
+    document.getElementById('char-limit-toggle').addEventListener('change', function () {
+      const charLimit = this.value;
+      localStorage.setItem('charLimit', charLimit);
+      const textAreas = document.querySelectorAll('#text-fields textarea');
+      textAreas.forEach(textarea => {
+        updateCharCount(textarea);
+        updateExceededClass(textarea);
+      });
+    });
+
+    function loadSavedToggleSelection() {
+      const savedCharLimit = localStorage.getItem('charLimit');
+      if (savedCharLimit) {
+        document.getElementById('char-limit-toggle').value = savedCharLimit;
+        const textAreas = document.querySelectorAll('#text-fields textarea');
+        textAreas.forEach(textarea => {
+          updateCharCount(textarea);
+          updateExceededClass(textarea);
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      loadSavedToggleSelection();
+      loadSavedTextFields();
+      loadSavedTextArea();
+    });
 
     textFieldsContainer.addEventListener('input', function (event) {
       if (event.target.tagName === 'TEXTAREA') {
@@ -133,11 +170,9 @@
       localStorage.setItem('textFields', JSON.stringify(textFieldValues));
     }
 
-     function loadSavedTextFields() {
+    function loadSavedTextFields() {
       const savedTextFields = JSON.parse(localStorage.getItem('textFields'));
       textFieldsContainer.innerHTML = '';
-      textFieldsContainer.appendChild(saveBtn);
-      textFieldsContainer.appendChild(clearBtn);
       if (savedTextFields && savedTextFields.length > 0) {
         savedTextFields.forEach(value => {
           const textField = createTextField(value);
@@ -172,8 +207,9 @@
     }
 
     function updateExceededClass(textarea) {
+      const charLimit = parseInt(document.getElementById('char-limit-toggle').value);
       const count = textarea.value.length;
-      if (count > 280) {
+      if (count > charLimit) {
         textarea.classList.add('exceeded');
       } else {
         textarea.classList.remove('exceeded');
@@ -181,10 +217,11 @@
     }
 
     function updateCharCount(textarea) {
+      const charLimit = parseInt(document.getElementById('char-limit-toggle').value);
       const charCount = textarea.parentNode.querySelector('.char-count');
       const count = textarea.value.length;
-      charCount.textContent = `${count}/280`;
-      if (count > 280) {
+      charCount.textContent = `${count}/${charLimit}`;
+      if (count > charLimit) {
         textarea.classList.add('exceeded');
         charCount.classList.add('exceeded');
       } else {
@@ -207,10 +244,10 @@
       if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
         localStorage.removeItem('textFields');
         localStorage.removeItem('textArea');
+        localStorage.removeItem('charLimit');
         textArea.value = '';
         textFieldsContainer.innerHTML = '';
-        textFieldsContainer.appendChild(saveBtn);
-        textFieldsContainer.appendChild(clearBtn);
+        document.getElementById('char-limit-toggle').value = 280;
         const initialTextField = createTextField();
         textFieldsContainer.appendChild(initialTextField);
         updateFieldLabels();
