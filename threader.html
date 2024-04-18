@@ -76,14 +76,14 @@
       border: none;
       border-radius: 5px;
       font-size: 14px;
-      color: #fff;
-      background-color: #28a745;
+      color: #333;
+      background-color: #f0f0f0;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
     #save-btn:hover {
-      background-color: #218838;
+      background-color: #e0e0e0;
     }
 
     #clear-btn {
@@ -91,14 +91,14 @@
       border: none;
       border-radius: 5px;
       font-size: 14px;
-      color: #fff;
-      background-color: #dc3545;
+      color: #333;
+      background-color: #f0f0f0;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
     #clear-btn:hover {
-      background-color: #c82333;
+      background-color: #e0e0e0;
     }
 
     .foot-container {
@@ -126,14 +126,14 @@
       border: none;
       border-radius: 5px;
       font-size: 12px;
-      color: #fff;
-      background-color: #dc3545;
+      color: #333;
+      background-color: #f0f0f0;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
     .remove-btn:hover {
-      background-color: #c82333;
+      background-color: #e0e0e0;
     }
 
     .add-field-btn {
@@ -141,14 +141,14 @@
       border: none;
       border-radius: 5px;
       font-size: 12px;
-      color: #fff;
-      background-color: #007bff;
+      color: #333;
+      background-color: #f0f0f0;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
     .add-field-btn:hover {
-      background-color: #0056b3;
+      background-color: #e0e0e0;
     }
 
     .copy-btn {
@@ -156,14 +156,21 @@
       border: none;
       border-radius: 5px;
       font-size: 12px;
-      color: #fff;
-      background-color: #17a2b8;
+      color: #333;
+      background-color: #f0f0f0;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
 
     .copy-btn:hover {
-      background-color: #138496;
+      background-color: #e0e0e0;
+    }
+
+    .char-count-fixed {
+      display: inline-block;
+      width: 40px;
+      text-align: right;
+      margin-right: 5px;
     }
   </style>
 </head>
@@ -172,232 +179,228 @@
   <textarea id="text-area"></textarea>
 
   <div id="thread-container">
-    <div id="thread-controls">
-      <label for="char-limit-toggle" style="font-size:12px">Maxchars:</label>
-      <select id="char-limit-toggle">
+    <div id="thread-controls"> <label for="char-limit-toggle" style="font-size:12px">Maxchars:</label> <select
+        id="char-limit-toggle">
         <option value="280">Twitter (280)</option>
         <option value="300">Bluesky (300)</option>
       </select>
-      <button id="save-btn">Save to file</button>
-      <button id="clear-btn">Clear all</button>
+      <button id="save-btn">💾 Save to file</button>
+      <button id="clear-btn">🗑️ Clear all</button>
     </div>
-
     <div id="text-fields">
     </div>
-  </div>
 
-  <script>
-    const textArea = document.getElementById('text-area');
-    const textFieldsContainer = document.getElementById('text-fields');
-    const saveBtn = document.getElementById('save-btn');
-    const clearBtn = document.getElementById('clear-btn');
+    <script>
+      const textArea = document.getElementById('text-area');
+      const textFieldsContainer = document.getElementById('text-fields');
+      const saveBtn = document.getElementById('save-btn');
+      const clearBtn = document.getElementById('clear-btn');
 
-    document.getElementById('char-limit-toggle').addEventListener('change', function () {
-      const charLimit = this.value;
-      localStorage.setItem('charLimit', charLimit);
-      const textAreas = document.querySelectorAll('#text-fields textarea');
-      textAreas.forEach(textarea => {
-        updateCharCount(textarea);
-        updateExceededClass(textarea);
-      });
-    });
-
-    function loadSavedToggleSelection() {
-      const savedCharLimit = localStorage.getItem('charLimit');
-      if (savedCharLimit) {
-        document.getElementById('char-limit-toggle').value = savedCharLimit;
+      document.getElementById('char-limit-toggle').addEventListener('change', function () {
+        const charLimit = this.value;
+        localStorage.setItem('charLimit', charLimit);
         const textAreas = document.querySelectorAll('#text-fields textarea');
         textAreas.forEach(textarea => {
           updateCharCount(textarea);
           updateExceededClass(textarea);
         });
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-      loadSavedToggleSelection();
-      loadSavedTextFields();
-      loadSavedTextArea();
-    });
-
-    textFieldsContainer.addEventListener('input', function (event) {
-      if (event.target.tagName === 'TEXTAREA') {
-        autoGrow(event.target);
-        const charCount = event.target.parentNode.querySelector('.char-count');
-        const count = event.target.value.length;
-        const charLimit = document.getElementById('char-limit-toggle').value;
-        charCount.textContent = `${count}/${charLimit}`;
-        if (count > charLimit) {
-          event.target.classList.add('exceeded');
-          charCount.classList.add('exceeded');
-        } else {
-          event.target.classList.remove('exceeded');
-          charCount.classList.remove('exceeded');
-        }
-        saveTextFields();
-      }
-    });
-
-    textArea.addEventListener('input', function () {
-      saveTextArea();
-    });
-
-    function addCopyButtonListener(textField) {
-      const copyButton = textField.querySelector('.copy-btn');
-      copyButton.addEventListener('click', function () {
-        const textarea = textField.querySelector('textarea');
-        copyToClipboard(textarea.value);
       });
-    }
 
-    function copyToClipboard(text) {
-      const tempTextarea = document.createElement('textarea');
-      tempTextarea.value = text;
-      document.body.appendChild(tempTextarea);
-      tempTextarea.select();
-      document.execCommand('copy');
-      document.body.removeChild(tempTextarea);
-    }
+      function loadSavedToggleSelection() {
+        const savedCharLimit = localStorage.getItem('charLimit');
+        if (savedCharLimit) {
+          document.getElementById('char-limit-toggle').value = savedCharLimit;
+          const textAreas = document.querySelectorAll('#text-fields textarea');
+          textAreas.forEach(textarea => {
+            updateCharCount(textarea);
+            updateExceededClass(textarea);
+          });
+        }
+      }
 
-    textFieldsContainer.addEventListener('click', function (event) {
-      if (event.target.classList.contains('remove-btn')) {
-        const textFields = textFieldsContainer.querySelectorAll('.text-field');
-        if (textFields.length > 1) {
-          event.target.closest('.text-field').remove();
+      document.addEventListener('DOMContentLoaded', function () {
+        loadSavedToggleSelection();
+        loadSavedTextFields();
+        loadSavedTextArea();
+      });
+
+      textFieldsContainer.addEventListener('input', function (event) {
+        if (event.target.tagName === 'TEXTAREA') {
+          autoGrow(event.target);
+          const charCount = event.target.parentNode.querySelector('.char-count');
+          const count = event.target.value.length;
+          const charLimit = document.getElementById('char-limit-toggle').value;
+          charCount.textContent = `${count}/${charLimit}`;
+          if (count > charLimit) {
+            event.target.classList.add('exceeded');
+            charCount.classList.add('exceeded');
+          } else {
+            event.target.classList.remove('exceeded');
+            charCount.classList.remove('exceeded');
+          }
+          saveTextFields();
+        }
+      });
+
+      textArea.addEventListener('input', function () {
+        saveTextArea();
+      });
+
+      function addCopyButtonListener(textField) {
+        const copyButton = textField.querySelector('.copy-btn');
+        copyButton.addEventListener('click', function () {
+          const textarea = textField.querySelector('textarea');
+          copyToClipboard(textarea.value);
+        });
+      }
+
+      function copyToClipboard(text) {
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.value = text;
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextarea);
+      }
+
+      textFieldsContainer.addEventListener('click', function (event) {
+        if (event.target.classList.contains('remove-btn')) {
+          const textFields = textFieldsContainer.querySelectorAll('.text-field');
+          if (textFields.length > 1) {
+            event.target.closest('.text-field').remove();
+            updateFieldLabels();
+            saveTextFields();
+          }
+        } else if (event.target.classList.contains('add-field-btn')) {
+          const textField = createTextField();
+          event.target.closest('.text-field').after(textField);
           updateFieldLabels();
           saveTextFields();
         }
-      } else if (event.target.classList.contains('add-field-btn')) {
-        const textField = createTextField();
-        event.target.closest('.text-field').after(textField);
-        updateFieldLabels();
-        saveTextFields();
-      }
-    });
-
-    saveBtn.addEventListener('click', function () {
-      const textFields = Array.from(textFieldsContainer.querySelectorAll('textarea'));
-      const tweets = textFields.map(textField => textField.value.trim()).filter(tweet => tweet !== '');
-      const fileContent = tweets.join('\n\n');
-      downloadFile('thread.txt', fileContent);
-    });
-
-    function autoGrow(element) {
-      element.style.height = 'auto';
-      element.style.height = Math.max(50, element.scrollHeight) + 'px';
-    }
-
-    function saveTextFields() {
-      const textFields = Array.from(textFieldsContainer.querySelectorAll('textarea'));
-      const textFieldValues = textFields.map(textField => textField.value);
-      localStorage.setItem('textFields', JSON.stringify(textFieldValues));
-    }
-
-    function loadSavedTextFields() {
-      const savedTextFields = JSON.parse(localStorage.getItem('textFields'));
-      textFieldsContainer.innerHTML = '';
-      if (savedTextFields && savedTextFields.length > 0) {
-        savedTextFields.forEach(value => {
-          const textField = createTextField(value);
-          textFieldsContainer.appendChild(textField);
-          autoGrow(textField.querySelector('textarea'));
-          addCopyButtonListener(textField);
-        });
-      } else {
-        const initialTextField = createTextField();
-        textFieldsContainer.appendChild(initialTextField);
-      }
-      updateFieldLabels();
-    }
-
-    function updateFieldLabels() {
-      const textFields = textFieldsContainer.querySelectorAll('.text-field');
-      const totalFields = textFields.length;
-      textFields.forEach((textField, index) => {
-        const fieldLabel = textField.querySelector('.field-label');
-        fieldLabel.textContent = `${index + 1}/${totalFields}`;
       });
-    }
 
-    function saveTextArea() {
-      localStorage.setItem('textArea', textArea.value);
-    }
+      saveBtn.addEventListener('click', function () {
+        const textFields = Array.from(textFieldsContainer.querySelectorAll('textarea'));
+        const tweets = textFields.map(textField => textField.value.trim()).filter(tweet => tweet !== '');
+        const fileContent = tweets.join('\n\n');
+        downloadFile('thread.txt', fileContent);
+      });
 
-    function loadSavedTextArea() {
-      const savedTextArea = localStorage.getItem('textArea');
-      if (savedTextArea) {
-        textArea.value = savedTextArea;
+      function autoGrow(element) {
+        element.style.height = 'auto';
+        element.style.height = Math.max(50, element.scrollHeight) + 'px';
       }
-    }
 
-    function updateExceededClass(textarea) {
-      const charLimit = parseInt(document.getElementById('char-limit-toggle').value);
-      const count = textarea.value.length;
-      if (count > charLimit) {
-        textarea.classList.add('exceeded');
-      } else {
-        textarea.classList.remove('exceeded');
+      function saveTextFields() {
+        const textFields = Array.from(textFieldsContainer.querySelectorAll('textarea'));
+        const textFieldValues = textFields.map(textField => textField.value);
+        localStorage.setItem('textFields', JSON.stringify(textFieldValues));
       }
-    }
 
-    function updateCharCount(textarea) {
-      const charLimit = parseInt(document.getElementById('char-limit-toggle').value);
-      const charCount = textarea.parentNode.querySelector('.char-count');
-      const count = textarea.value.length;
-      charCount.textContent = `${count}/${charLimit}`;
-      if (count > charLimit) {
-        textarea.classList.add('exceeded');
-        charCount.classList.add('exceeded');
-      } else {
-        textarea.classList.remove('exceeded');
-        charCount.classList.remove('exceeded');
-      }
-    }
-
-    function downloadFile(filename, content) {
-      const element = document.createElement('a');
-      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
-      element.setAttribute('download', filename);
-      element.style.display = 'none';
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-    }
-
-    clearBtn.addEventListener('click', function () {
-      if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
-        localStorage.removeItem('textFields');
-        localStorage.removeItem('textArea');
-        localStorage.removeItem('charLimit');
-        textArea.value = '';
+      function loadSavedTextFields() {
+        const savedTextFields = JSON.parse(localStorage.getItem('textFields'));
         textFieldsContainer.innerHTML = '';
-        document.getElementById('char-limit-toggle').value = 280;
-        const initialTextField = createTextField();
-        textFieldsContainer.appendChild(initialTextField);
+        if (savedTextFields && savedTextFields.length > 0) {
+          savedTextFields.forEach(value => {
+            const textField = createTextField(value);
+            textFieldsContainer.appendChild(textField);
+            autoGrow(textField.querySelector('textarea'));
+            addCopyButtonListener(textField);
+          });
+        } else {
+          const initialTextField = createTextField();
+          textFieldsContainer.appendChild(initialTextField);
+        }
         updateFieldLabels();
       }
-    });
 
-    function createTextField(value = '') {
-      const textField = document.createElement('div');
-      textField.classList.add('text-field');
-      textField.innerHTML = `
-    <textarea wrap="soft">${value}</textarea>
-    <div class="foot-container">
-      <span class="field-label">1/1</span>
-      <span class="char-count">0/280</span>
-      <button class="remove-btn">Remove</button>
-      <button class="add-field-btn">Insert</button>
-      <button class="copy-btn">Copy</button>
-    </div>
-  `;
-      const textarea = textField.querySelector('textarea');
-      autoGrow(textarea);
-      updateCharCount(textarea);
-      updateExceededClass(textarea);
-      return textField;
-    }
-  </script>
+      function updateFieldLabels() {
+        const textFields = textFieldsContainer.querySelectorAll('.text-field');
+        const totalFields = textFields.length;
+        textFields.forEach((textField, index) => {
+          const fieldLabel = textField.querySelector('.field-label');
+          fieldLabel.textContent = `${index + 1}/${totalFields}`;
+        });
+      }
+
+      function saveTextArea() {
+        localStorage.setItem('textArea', textArea.value);
+      }
+
+      function loadSavedTextArea() {
+        const savedTextArea = localStorage.getItem('textArea');
+        if (savedTextArea) {
+          textArea.value = savedTextArea;
+        }
+      }
+
+      function updateExceededClass(textarea) {
+        const charLimit = parseInt(document.getElementById('char-limit-toggle').value);
+        const count = textarea.value.length;
+        if (count > charLimit) {
+          textarea.classList.add('exceeded');
+        } else {
+          textarea.classList.remove('exceeded');
+        }
+      }
+
+      function updateCharCount(textarea) {
+        const charLimit = parseInt(document.getElementById('char-limit-toggle').value);
+        const charCount = textarea.parentNode.querySelector('.char-count');
+        const count = textarea.value.length;
+        charCount.textContent = `${count}/${charLimit}`;
+        if (count > charLimit) {
+          textarea.classList.add('exceeded');
+          charCount.classList.add('exceeded');
+        } else {
+          textarea.classList.remove('exceeded');
+          charCount.classList.remove('exceeded');
+        }
+      }
+
+      function downloadFile(filename, content) {
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+
+      clearBtn.addEventListener('click', function () {
+        if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+          localStorage.removeItem('textFields');
+          localStorage.removeItem('textArea');
+          localStorage.removeItem('charLimit');
+          textArea.value = '';
+          textFieldsContainer.innerHTML = '';
+          document.getElementById('char-limit-toggle').value = 280;
+          const initialTextField = createTextField();
+          textFieldsContainer.appendChild(initialTextField);
+          updateFieldLabels();
+        }
+      });
+
+      function createTextField(value = '') {
+        const textField = document.createElement('div');
+        textField.classList.add('text-field');
+        textField.innerHTML = `
+          <textarea wrap="soft">${value}</textarea>
+          <div class="foot-container">
+            <span class="field-label">1/1</span>
+            <span class="char-count char-count-fixed">0/280</span>
+            <button class="remove-btn">❌ Remove</button>
+            <button class="add-field-btn">➕ Insert</button>
+            <button class="copy-btn">📋 Copy</button>
+          </div>  `;
+        const textarea = textField.querySelector('textarea');
+        autoGrow(textarea);
+        updateCharCount(textarea);
+        updateExceededClass(textarea);
+        return textField;
+      }
+    </script>
 </body>
 
 </html>
