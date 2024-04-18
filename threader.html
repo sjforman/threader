@@ -9,7 +9,7 @@
       font-family: Arial, sans-serif;
       background-color: #f5f5f5;
     }
-  
+
     #text-area {
       flex: 1;
       height: 400px;
@@ -20,11 +20,11 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-  
+
     #thread-container {
       flex: 1;
     }
-  
+
     .text-field {
       margin-bottom: 20px;
       background-color: #fff;
@@ -32,7 +32,7 @@
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-  
+
     .text-field textarea {
       width: 100%;
       padding: 10px;
@@ -45,24 +45,24 @@
       transition: border-color 0.3s ease;
       box-sizing: border-box;
     }
-  
+
     .text-field textarea:focus {
       border-color: #007bff;
       outline: none;
     }
-  
+
     .text-field textarea.exceeded {
       background-color: #fff3cd;
       border-color: #ffc107;
     }
-  
+
     #thread-controls {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-bottom: 20px;
     }
-  
+
     #char-limit-toggle {
       padding: 5px 10px;
       border: 1px solid #ccc;
@@ -70,7 +70,7 @@
       font-size: 14px;
       background-color: #fff;
     }
-  
+
     #save-btn {
       padding: 8px 16px;
       border: none;
@@ -81,11 +81,11 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-  
+
     #save-btn:hover {
       background-color: #218838;
     }
-  
+
     #clear-btn {
       padding: 8px 16px;
       border: none;
@@ -96,31 +96,31 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-  
+
     #clear-btn:hover {
       background-color: #c82333;
     }
-  
+
     .foot-container {
       display: flex;
       align-items: center;
       gap: 10px;
       margin-top: 5px;
     }
-  
+
     .char-count {
       font-size: 14px;
     }
-  
+
     .exceeded {
       color: #dc3545;
     }
-  
+
     .field-label {
       font-size: 14px;
       color: #777;
     }
-  
+
     .remove-btn {
       padding: 5px 10px;
       border: none;
@@ -131,11 +131,11 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-  
+
     .remove-btn:hover {
       background-color: #c82333;
     }
-  
+
     .add-field-btn {
       padding: 5px 10px;
       border: none;
@@ -146,9 +146,24 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-  
+
     .add-field-btn:hover {
       background-color: #0056b3;
+    }
+
+    .copy-btn {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      font-size: 12px;
+      color: #fff;
+      background-color: #17a2b8;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background-color: #138496;
     }
   </style>
 </head>
@@ -226,6 +241,23 @@
       saveTextArea();
     });
 
+    function addCopyButtonListener(textField) {
+      const copyButton = textField.querySelector('.copy-btn');
+      copyButton.addEventListener('click', function () {
+        const textarea = textField.querySelector('textarea');
+        copyToClipboard(textarea.value);
+      });
+    }
+
+    function copyToClipboard(text) {
+      const tempTextarea = document.createElement('textarea');
+      tempTextarea.value = text;
+      document.body.appendChild(tempTextarea);
+      tempTextarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempTextarea);
+    }
+
     textFieldsContainer.addEventListener('click', function (event) {
       if (event.target.classList.contains('remove-btn')) {
         const textFields = textFieldsContainer.querySelectorAll('.text-field');
@@ -268,6 +300,7 @@
           const textField = createTextField(value);
           textFieldsContainer.appendChild(textField);
           autoGrow(textField.querySelector('textarea'));
+          addCopyButtonListener(textField);
         });
       } else {
         const initialTextField = createTextField();
@@ -354,6 +387,7 @@
       <span class="char-count">0/280</span>
       <button class="remove-btn">Remove</button>
       <button class="add-field-btn">Insert</button>
+      <button class="copy-btn">Copy</button>
     </div>
   `;
       const textarea = textField.querySelector('textarea');
