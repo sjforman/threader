@@ -225,8 +225,9 @@
         autoGrow(event.target);
         const charCount = event.target.parentNode.querySelector('.char-count');
         const count = event.target.value.length;
-        charCount.textContent = `${count}/280`;
-        if (count > 280) {
+        const charLimit = document.getElementById('char-limit-toggle').value;
+        charCount.textContent = `${count}/${charLimit}`;
+        if (count > charLimit) {
           event.target.classList.add('exceeded');
           charCount.classList.add('exceeded');
         } else {
